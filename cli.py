@@ -1,20 +1,21 @@
-import typer, json, datetime, webbrowser, random, string, os, csv
+import typer, json, datetime, webbrowser, random, string, os, csv, toml
 from rich import print
+from rich.table import Table
 
-app = typer.Typer()
 bm = typer.Typer()
-app.add_typer(bm, name="bm")
 
 
-@app.command()
+@bm.command()
 def init():
+    """Initialize  CLI"""
     os.system("cls" if os.name == "nt" else "clear")
 
     print("\nWelcome to [bold blue]Bookmarkr[/bold blue], the CLI bookmark tool! Type 'exit' to quit.\n")
 
 
-@app.command()
+@bm.command()
 def exit():
+    """Exit CLI"""
     os.system("cls" if os.name == "nt" else "clear")
 
     print('\n[bold red]Exiting...[/bold red]')
@@ -58,30 +59,41 @@ def add(
 
         with open("bookmarks.json", "w") as f:
             json.dump(bms, f, indent=4)
-            print(f"\nAdded bookmark[blue] {name} [/blue]to bookmarks.json\n")
+            print(f"\nAdded bookmark[blue] {name} [/blue]\n")
 
 
 @bm.command()
 def list():
-
-    # list all bookmarks in table view
+    """List all bookmarks in table view"""
     os.system("cls" if os.name == "nt" else "clear")
 
+    # create rich table for all bookmarks
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("ID",  width=10)
+    table.add_column("Name",  width=12)
+    table.add_column("URL",  width=30)
+    table.add_column("Tag",  width=12)
+    table.add_column("Last Modified",  width=20)
+
     with open("bookmarks.json", "r") as f:
-
         bms = json.load(f)
-        print(f"\n[bold blue]Bookmarks[/bold blue] : {len(bms)}\n")
-        print(f"{'ID':<20}{'Name':<20}{'URL':<40}{'Tag':<10}{'Last Modified':<20}")
-        print("-" * 103)
-        for bm in bms.values():
-            print(f"{bm['id']:<20}{bm['name']:<20}{bm['url']:<40}{bm['tag']:<10} {bm['last modified']:<20}")
 
-        print("\n")
+        for bm in bms:
+            table.add_row(
+                bms[bm]["id"],
+                bms[bm]["name"],
+                bms[bm]["url"],
+                bms[bm]["tag"],
+                bms[bm]["last modified"]
+            )
+
+
+    print(table)
 
 
 @bm.command()
-def delete(name: str = typer.Argument(..., help="Name of the bm to delete")):
-    """Delete a bm from bookmarks.json"""
+def delete(name: str = typer.Argument(..., help="Name of the bookmark to delete")):
+    """Delete a bookmark from bookmarks.json"""
     os.system("cls" if os.name == "nt" else "clear")
 
     with open("bookmarks.json", "r") as f:
@@ -90,7 +102,7 @@ def delete(name: str = typer.Argument(..., help="Name of the bm to delete")):
             del bms[name]
             with open("bookmarks.json", "w") as f:
                 json.dump(bms, f, indent=4)
-                print(f"\nDeleted bookmark[blue] {name} [/blue]from bookmarks.json\n")
+                print(f"\nDeleted bookmark[blue] {name} [/blue]\n")
         else:
             print(f" \n[red]Error[/red]: bookmark {name} does not exist.\n")
 
@@ -140,13 +152,13 @@ def update(name: str = typer.Argument(..., help="Name of the bm to update")):
         bms = json.load(f)
         if name in bms:
             print(f"Updating bookmark [blue] {name} [/blue]")
-            url = input("Enter new URL: ")
-            tag = input("Enter new tag: ")
+            url = typer.prompt("Enter new URL")
+            tag = typer.prompt("Enter new tag")
             bms[name]["url"] = url
             bms[name]["tag"] = tag
             with open("bookmarks.json", "w") as f:
                 json.dump(bms, f, indent=4)
-                print(f"\nUpdated bookmark [blue] {name} [/blue]to bookmarks.json\n")
+                print(f"\nUpdated bookmark [blue] {name} [/blue]\n")
         else:
             print(f" \n[red]Error[/red]: bookmark {name} does not exist.\n")
 
@@ -162,7 +174,7 @@ def clear():
     Type [bold blue]yes[/bold blue] to proceed or [bold blue]no[/bold blue] to cancel.\n""")
 
 
-    if input(">>> ").lower().strip() == "yes":
+    if input("    >>> ").lower().strip() == "yes":
         with open("bookmarks.json", "w") as f:
             json.dump({}, f, indent=4)
             print("Cleared bookmarks")
@@ -184,7 +196,7 @@ def export_csv():
 
 @bm.command()
 def import_csv():
-    """Import bookmarks from bookmarks.csv file"""
+    """Import bookmarks from a CSV file"""
     with open("bookmarks.csv", "r") as f:
         reader = csv.reader(f)
         next(reader)
@@ -203,5 +215,17 @@ def import_csv():
             print("\nImported bookmarks from [yellow]bookmarks.csv[/yellow]\n")
 
 
+@bm.command()
+def import_json():
+    """Import bookmarks from a JSON file"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        with open("bookmarks.json", "w") as f:
+            json.dump(bms, f, indent=4)
+
+        print("\nImported bookmarks from [yellow]bookmarks.json[/yellow]\n")
+
+
+
 if __name__ == "__main__":
-    app()
+    bm()
