@@ -57,8 +57,8 @@ def add(
             "last modified": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         }
 
-        with open("bookmarks.json", "w") as f:
-            json.dump(bms, f, indent=4)
+        with open("bookmarks.json", "w") as c:
+            json.dump(bms, c, indent=4)
             print(f"\nAdded bookmark[blue] {name} [/blue]\n")
 
 
@@ -100,8 +100,8 @@ def delete(name: str = typer.Argument(..., help="Name of the bookmark to delete"
         bms = json.load(f)
         if name in bms:
             del bms[name]
-            with open("bookmarks.json", "w") as f:
-                json.dump(bms, f, indent=4)
+            with open("bookmarks.json", "w") as c:
+                json.dump(bms, c, indent=4)
                 print(f"\nDeleted bookmark[blue] {name} [/blue]\n")
         else:
             print(f" \n[red]Error[/red]: bookmark {name} does not exist.\n")
@@ -156,8 +156,8 @@ def update(name: str = typer.Argument(..., help="Name of the bm to update")):
             tag = typer.prompt("Enter new tag")
             bms[name]["url"] = url
             bms[name]["tag"] = tag
-            with open("bookmarks.json", "w") as f:
-                json.dump(bms, f, indent=4)
+            with open("bookmarks.json", "w") as c:
+                json.dump(bms, c, indent=4)
                 print(f"\nUpdated bookmark [blue] {name} [/blue]\n")
         else:
             print(f" \n[red]Error[/red]: bookmark {name} does not exist.\n")
@@ -185,8 +185,8 @@ def export_csv():
     """Export bookmarks to a CSV file"""
     with open("bookmarks.json", "r") as f:
         bms = json.load(f)
-        with open("bookmarks.csv", "w", newline="") as f:
-            writer = csv.writer(f)
+        with open("bookmarks.csv", "w", newline="") as c:
+            writer = csv.writer(c)
             writer.writerow(["ID", "Name", "URL", "Tag", "Last Modified"])
             for bm in bms.values():
                 writer.writerow([bm["id"], bm["name"], bm["url"], bm["tag"], bm["last modified"]])
@@ -210,8 +210,8 @@ def import_csv():
                 "last modified": row[4]
             }
 
-        with open("bookmarks.json", "w") as f:
-            json.dump(bms, f, indent=4)
+        with open("bookmarks.json", "w") as c:
+            json.dump(bms, c, indent=4)
             print("\nImported bookmarks from [yellow]bookmarks.csv[/yellow]\n")
 
 
@@ -220,11 +220,10 @@ def import_json():
     """Import bookmarks from a JSON file"""
     with open("bookmarks.json", "r") as f:
         bms = json.load(f)
-        with open("bookmarks.json", "w") as f:
-            json.dump(bms, f, indent=4)
+        with open("bookmarks.json", "w") as c:
+            json.dump(bms, c, indent=4)
 
         print("\nImported bookmarks from [yellow]bookmarks.json[/yellow]\n")
-
 
 
 if __name__ == "__main__":
