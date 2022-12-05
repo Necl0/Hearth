@@ -1,18 +1,17 @@
-import openai
 import typer
 from rich import print
 import json
-
-openai.api_key = "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"
+import datetime
+import webbrowser
 
 app = typer.Typer()
-preset = typer.Typer()
-app.add_typer(preset, name="preset")
+bm = typer.Typer()
+app.add_typer(bm, name="bm")
 
 
 @app.command()
 def init():
-    print("\nWelcome to the [bold blue]OpenAI CLI![/bold blue] Type 'exit' to quit.\n")
+    print("\nWelcome to [bold blue]Nota[/bold blue], the CLI bm tool! Type 'exit' to quit.\n")
 
 
 @app.command()
@@ -21,115 +20,137 @@ def exit():
     raise typer.Exit()
 
 
-@preset.command()
+@bm.command()
 def add(
-        name: str = typer.Argument(..., help="Name of the preset"),
-        engine: str = typer.Argument('...', help='The engine to use for completion.'),
-        query: str = typer.Argument('...', help='The prompt to use for completion.'),
-        temp: float = typer.Argument(0.5, help="The higher the temperature, the more random the completions."),
-        max_t: int = typer.Argument(2048, help="The maximum number of tokens to generate."),
-        top_p: float = typer.Argument(1, help="engine considers the results of the tokens with top_p probability mass. "),
-        freq_pen: float = typer.Argument(0, help="engine prefers words that were not used recently."),
-        pre_pen: float = typer.Argument(0, help="engine prefers completions that have a certain subsequence present.")
+        name: str = typer.Argument(..., help="Name of the bookmark"),
+        url: str = typer.Argument(..., help="bookmark URL"),
+        tag: str = typer.Argument(..., help="Tag for the bookmark")
         ):
-    """Add a preset to the cli to be used later"""
+    """Add a bookmark to the cli to be used later"""
 
-    # assert presets are valid
-    if query == "":
-        print("Invalid query. Please enter a query.")
+    if name == "":
+        print("Invalid name. Please enter a name.")
         return
 
     with open("banned.txt", "r") as f:
         banned = f.read().splitlines()
         for word in banned:
-            if word in query:
+            if word in name:
                 print(f"Error: query contains banned language. Please remove {word} from your query.")
                 return
 
-    assert engine in ["davinci", "curie", "babbage", "ada"], "Invalid engine. Must be davinci, curie, babbage, or ada."
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
 
-    assert 0 <= temp <= 1, "Temperature must be between 0 and 1."
-    assert 0 <= top_p <= 1, "Top_p must be between 0 and 1."
-    assert 0 <= freq_pen <= 1, "Frequency penalty must be between 0 and 1."
-    assert 0 <= pre_pen <= 1, "Presence penalty must be between 0 and 1."
-
-    match engine:
-        case "davinci":
-            assert max_t <= 4000, "Maximum tokens must be <= 4000."
-        case "curie" | "babbage" | "ada":
-            assert max_t <= 2048, "Maximum tokens must be <= 2048."
-
-    with open("presets.json", "r") as f:
-        presets = json.load(f)
-
-        if name in presets:
-            print(f"Error: preset {name} already exists. Please choose a different name.")
+        if name in bms:
+            print(f"Error: bookmark {name} already exists. Please choose a different name.")
             return
 
-        presets[name] = {
-            "engine": engine,
-            "query": query,
-            "temp": temp,
-            "max_t": max_t,
-            "top_p": top_p,
-            "freq_pen": freq_pen,
-            "pre_pen": pre_pen
+        bms[name] = {
+            "name": name,
+            "url": url,
+            "tag": tag,
+            "last modified": datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         }
 
-        with open("presets.json", "w") as f:
-            json.dump(presets, f, indent=4)
-            print(f"Added preset[blue] {name} [/blue]to presets.json")
+        with open("bookmarks.json", "w") as f:
+            json.dump(bms, f, indent=4)
+            print(f"Added bookmark [blue] {name} [/blue]to bookmarks.json")
 
-@preset.command()
+
+@bm.command()
 def list():
-    """List all presets in presets.json"""
-    with open("presets.json", "r") as f:
-        presets = json.load(f)
-        for preset in presets:
-            # print preset attributes neatly
-            print(f"[bold blue]{preset}[/bold blue]")
-            for key, value in presets[preset].items():
+    """List all bms"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+
+        print("\n[bold red]Bookmarks[/bold red]\n")
+
+        for bm in bms:
+            print(f"[bold blue]{bm}[/bold blue]")
+            for key, value in bms[bm].items():
                 print(f"{key}: {value}")
             print()
 
-@preset.command()
-def delete(name: str = typer.Argument(..., help="Name of the preset to delete")):
-    """Delete a preset from presets.json"""
-    with open("presets.json", "r") as f:
-        presets = json.load(f)
-        if name in presets:
-            del presets[name]
-            with open("presets.json", "w") as f:
-                json.dump(presets, f, indent=4)
-                print(f"Deleted preset[blue] {name} [/blue]from presets.json")
+@bm.command()
+def delete(name: str = typer.Argument(..., help="Name of the bm to delete")):
+    """Delete a bm from bookmarks.json"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        if name in bms:
+            del bms[name]
+            with open("bookmarks.json", "w") as f:
+                json.dump(bms, f, indent=4)
+                print(f"Deleted bm[blue] {name} [/blue]from bookmarks.json")
         else:
-            print(f"Error: preset {name} does not exist.")
+            print(f"Error: bookmark {name} does not exist.")
+
+@bm.command()
+def view(name: str = typer.Argument(..., help="Name of the bm to open")):
+    """Open a bookmark in the browser"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        if name in bms:
+            webbrowser.open(bms[name]["url"])
+        else:
+            print(f"Error: bookmark {name} does not exist.")
 
 
-@app.command()
-def complete(name: str = typer.Argument(..., help="Use preset to generate text completion")):
-    """Use a preset to generate text"""
-    with open('presets.json', 'r') as f:
-        presets = json.load(f)
+@bm.command()
+def search(query: str = typer.Argument(..., help="Query to search for")):
+    """Search for a bookmark"""
 
-    try:
-        preset = presets[name]
-    except KeyError:
-        print(f"[bold red]Preset {name} not found.[/bold red]")
-        return
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        for bm in bms:
+            if query in bm:
+                print(f"\nFound bookmark [bold blue]{bm}[/bold blue]")
+                for key, value in bms[bm].items():
+                    print(f"{key}: {value}")
 
-    response = openai.Completion.create(
-        engine=preset['engine'],
-        prompt=preset['query'],
-        temperature=preset['temp'],
-        max_tokens=preset['max_t'],
-        top_p=preset['top_p'],
-        frequency_penalty=preset['freq_pen'],
-        presence_penalty=preset['pre_pen']
-    )
+                print()
+                return
 
-    print(response['choices'][0]['text'])
+    print(f"\nNo bookmark found for query [bold blue]{query} [/bold blue]\n")
 
+@bm.command()
+def update(name: str = typer.Argument(..., help="Name of the bm to update")):
+    """Update a bookmark"""
+
+    # update a bm
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        if name in bms:
+            print(f"Updating bookmark [blue] {name} [/blue]")
+            url = input("Enter new URL: ")
+            tag = input("Enter new tag: ")
+            bms[name]["url"] = url
+            bms[name]["tag"] = tag
+            with open("bookmarks.json", "w") as f:
+                json.dump(bms, f, indent=4)
+                print(f"Updated bookmark [blue] {name} [/blue]to bookmarks.json")
+        else:
+            print(f"Error: bookmark {name} does not exist.")
+
+@bm.command()
+def clear():
+    """Clear all bookmarks"""
+
+    # check if you want to proceed
+    print("Are you sure you want to clear all bookmarks? [bold red]This cannot be undone.[/bold red]")
+    print("Type [bold blue]yes[/bold blue] to proceed.")
+
+    if input().lower().strip() == "yes":
+        with open("bookmarks.json", "w") as f:
+            json.dump({}, f, indent=4)
+            print("Cleared bookmarks")
+
+@bm.command()
+def count():
+    """Count the number of bookmarks"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        print(f"\nNumber of bookmarks: [bold yellow]{len(bms)}[/bold yellow]\n")
 
 
 if __name__ == "__main__":
