@@ -184,7 +184,7 @@ def count():
 
 
 @bm.command()
-def export():
+def export_csv():
     """Export bookmarks to a CSV file"""
     with open("bookmarks.json", "r") as f:
         bms = json.load(f)
