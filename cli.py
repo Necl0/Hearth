@@ -9,9 +9,16 @@ app = typer.Typer()
 preset = typer.Typer()
 app.add_typer(preset, name="preset")
 
+
 @app.command()
 def init():
     print("\nWelcome to the [bold blue]OpenAI CLI![/bold blue] Type 'exit' to quit.\n")
+
+
+@app.command()
+def exit():
+    print('\n[bold red]Exiting...[/bold red]')
+    raise typer.Exit()
 
 
 @preset.command()
@@ -97,12 +104,6 @@ def delete(name: str = typer.Argument(..., help="Name of the preset to delete"))
                 print(f"Deleted preset[blue] {name} [/blue]from presets.json")
         else:
             print(f"Error: preset {name} does not exist.")
-
-
-@app.command()
-def exit():
-    print('\n[bold red]Exiting...[/bold red]')
-    raise typer.Exit()
 
 
 @app.command()
