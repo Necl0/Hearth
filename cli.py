@@ -176,14 +176,6 @@ def clear():
 
 
 @bm.command()
-def count():
-    """Count the number of bookmarks"""
-    with open("bookmarks.json", "r") as f:
-        bms = json.load(f)
-        print(f"\nNumber of bookmarks: [bold yellow]{len(bms)}[/bold yellow]\n")
-
-
-@bm.command()
 def export_csv():
     """Export bookmarks to a CSV file"""
     with open("bookmarks.json", "r") as f:
