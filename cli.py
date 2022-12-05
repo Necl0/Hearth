@@ -1,36 +1,33 @@
 import openai
 import typer
 from rich import print
-from typing import Optional
+import json
 
 openai.api_key = "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"
 
 app = typer.Typer()
+preset = typer.Typer()
+app.add_typer(preset, name="preset")
+
+@app.command()
+def init():
+    print("\nWelcome to the [bold blue]OpenAI CLI![/bold blue] Type 'exit' to quit.\n")
 
 
-def main(
-         engine: str = typer.Argument('...', help='The engine to use for completion.'),
-         query: str = typer.Argument('...', help='The prompt to use for completion.'),
-         temp: float = typer.Argument(0.5, help="The higher the temperature, the more random the completions. Try 0.9 for more adventurous completions."),
-         max_t: int = typer.Argument(2048, help="The maximum number of tokens to generate. The default is 2048 for curie, babbage, and ada. 4000 for davinci."),
-         top_p: float = typer.Argument(1, help="engine considers the results of the tokens with top_p probability mass. "),
-         freq_pen: float = typer.Argument(0, help="engine prefers words that were not used recently."),
-         pre_pen: float = typer.Argument(0, help="engine prefers completions that have a certain subsequence present."),
-        ) -> None:
+@preset.command()
+def add(
+        name: str = typer.Argument(..., help="Name of the preset"),
+        engine: str = typer.Argument('...', help='The engine to use for completion.'),
+        query: str = typer.Argument('...', help='The prompt to use for completion.'),
+        temp: float = typer.Argument(0.5, help="The higher the temperature, the more random the completions."),
+        max_t: int = typer.Argument(2048, help="The maximum number of tokens to generate."),
+        top_p: float = typer.Argument(1, help="engine considers the results of the tokens with top_p probability mass. "),
+        freq_pen: float = typer.Argument(0, help="engine prefers words that were not used recently."),
+        pre_pen: float = typer.Argument(0, help="engine prefers completions that have a certain subsequence present.")
+        ):
+    """Add a preset to the cli to be used later"""
 
-    """Use OpenAI's engines to generate text.
-
-    Args:
-    - engine (str): The engine to use. Can be davinci, curie, babbage, or ada.
-    - query (str): The prompt to use.
-    - temp (float): The temperature to use.
-    - max_t (int): The maximum number of tokens to generate.
-    - top_p (float): The top_p to use.
-    - freq_pen (float): The frequency penalty to use.
-    - pre_pen (float): The presence penalty to use.
-
-    """
-
+    # assert presets are valid
     if query == "":
         print("Invalid query. Please enter a query.")
         return
@@ -55,27 +52,84 @@ def main(
         case "curie" | "babbage" | "ada":
             assert max_t <= 2048, "Maximum tokens must be <= 2048."
 
+    with open("presets.json", "r") as f:
+        presets = json.load(f)
+
+        if name in presets:
+            print(f"Error: preset {name} already exists. Please choose a different name.")
+            return
+
+        presets[name] = {
+            "engine": engine,
+            "query": query,
+            "temp": temp,
+            "max_t": max_t,
+            "top_p": top_p,
+            "freq_pen": freq_pen,
+            "pre_pen": pre_pen
+        }
+
+        with open("presets.json", "w") as f:
+            json.dump(presets, f, indent=4)
+            print(f"Added preset[blue] {name} [/blue]to presets.json")
+
+@preset.command()
+def list():
+    """List all presets in presets.json"""
+    with open("presets.json", "r") as f:
+        presets = json.load(f)
+        for preset in presets:
+            # print preset attributes neatly
+            print(f"[bold blue]{preset}[/bold blue]")
+            for key, value in presets[preset].items():
+                print(f"{key}: {value}")
+            print()
+
+@preset.command()
+def delete(name: str = typer.Argument(..., help="Name of the preset to delete")):
+    """Delete a preset from presets.json"""
+    with open("presets.json", "r") as f:
+        presets = json.load(f)
+        if name in presets:
+            del presets[name]
+            with open("presets.json", "w") as f:
+                json.dump(presets, f, indent=4)
+                print(f"Deleted preset[blue] {name} [/blue]from presets.json")
+        else:
+            print(f"Error: preset {name} does not exist.")
+
+
+@app.command()
+def exit():
+    print('\n[bold red]Exiting...[/bold red]')
+    raise typer.Exit()
+
+
+@app.command()
+def complete(name: str = typer.Argument(..., help="Use preset to generate text completion")):
+    """Use a preset to generate text"""
+    with open('presets.json', 'r') as f:
+        presets = json.load(f)
+
+    try:
+        preset = presets[name]
+    except KeyError:
+        print(f"[bold red]Preset {name} not found.[/bold red]")
+        return
+
     response = openai.Completion.create(
-        engine=engine,
-        prompt=query,
-        temperature=temp,
-        max_tokens=max_t,
-        top_p=top_p,
-        frequency_penalty=freq_pen,
-        presence_penalty=pre_pen,
-        stop=["\n", " Human:", " AI:"]
+        engine=preset['engine'],
+        prompt=preset['query'],
+        temperature=preset['temp'],
+        max_tokens=preset['max_t'],
+        top_p=preset['top_p'],
+        frequency_penalty=preset['freq_pen'],
+        presence_penalty=preset['pre_pen']
     )
 
-    if query.lower().strip() == 'exit':
-        print('\n[bold red]Exiting...[/bold red]')
-        exit()
+    print(response['choices'][0]['text'])
 
-    print(response["choices"][0]["text"])
 
 
 if __name__ == "__main__":
-    print(r"""Welcome to the OpenAI CLI! Type 'exit' to quit.\n
-     [oo]
-    /|##|\
-     d  b""")
-    typer.run(main)
+    app()
