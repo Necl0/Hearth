@@ -1,12 +1,5 @@
-import typer
+import typer, json, datetime, webbrowser, random, string, os, csv
 from rich import print
-import json
-import datetime
-import webbrowser
-import random
-import string
-import os
-import csv
 
 app = typer.Typer()
 bm = typer.Typer()
@@ -79,9 +72,9 @@ def list():
         bms = json.load(f)
         print(f"\n[bold blue]Bookmarks[/bold blue] : {len(bms)}\n")
         print(f"{'ID':<20}{'Name':<20}{'URL':<40}{'Tag':<10}{'Last Modified':<20}")
-        print("-" * 100)
+        print("-" * 103)
         for bm in bms.values():
-            print(f"{bm['id']:<20}{bm['name']:<20}{bm['url']:<40}{bm['tag']:<10}{bm['last modified']:<20}")
+            print(f"{bm['id']:<20}{bm['name']:<20}{bm['url']:<40}{bm['tag']:<10} {bm['last modified']:<20}")
 
         print("\n")
 
