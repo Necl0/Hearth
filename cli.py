@@ -6,6 +6,7 @@ import webbrowser
 import random
 import string
 import os
+import csv
 
 app = typer.Typer()
 bm = typer.Typer()
@@ -44,7 +45,7 @@ def add(
         banned = f.read().splitlines()
         for word in banned:
             if word in name:
-                print(f"\n[red]Error [/red]: name contains banned language. Please remove {word} from the name.\n")
+                print(f"\n[red]Error [/red]: name contains banned language. Please remove[red] {word}[/red] from the name.\n")
                 return
 
     with open("bookmarks.json", "r") as f:
@@ -64,25 +65,25 @@ def add(
 
         with open("bookmarks.json", "w") as f:
             json.dump(bms, f, indent=4)
-            print(f"\nAdded bookmark [blue] {name} [/blue]to bookmarks.json\n")
+            print(f"\nAdded bookmark[blue] {name} [/blue]to bookmarks.json\n")
 
 
 @bm.command()
 def list():
-    """List all bms"""
+
+    # list all bookmarks in table view
     os.system("cls" if os.name == "nt" else "clear")
 
     with open("bookmarks.json", "r") as f:
+
         bms = json.load(f)
+        print(f"\n[bold blue]Bookmarks[/bold blue] : {len(bms)}\n")
+        print(f"{'ID':<20}{'Name':<20}{'URL':<40}{'Tag':<10}{'Last Modified':<20}")
+        print("-" * 100)
+        for bm in bms.values():
+            print(f"{bm['id']:<20}{bm['name']:<20}{bm['url']:<40}{bm['tag']:<10}{bm['last modified']:<20}")
 
-        print("\n[bold red]Bookmarks[/bold red]\n")
-
-        for bm in bms:
-            print(f"[bold blue]{bm}[/bold blue]")
-            for key, value in bms[bm].items():
-                if key!="name":
-                    print(f"{key}: {value}")
-            print()
+        print("\n")
 
 
 @bm.command()
@@ -180,6 +181,41 @@ def count():
     with open("bookmarks.json", "r") as f:
         bms = json.load(f)
         print(f"\nNumber of bookmarks: [bold yellow]{len(bms)}[/bold yellow]\n")
+
+
+@bm.command()
+def export():
+    """Export bookmarks to a CSV file"""
+    with open("bookmarks.json", "r") as f:
+        bms = json.load(f)
+        with open("bookmarks.csv", "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["ID", "Name", "URL", "Tag", "Last Modified"])
+            for bm in bms.values():
+                writer.writerow([bm["id"], bm["name"], bm["url"], bm["tag"], bm["last modified"]])
+
+        print("\nExported bookmarks to bookmarks.csv\n")
+
+
+@bm.command()
+def import_csv():
+    """Import bookmarks from bookmarks.csv file"""
+    with open("bookmarks.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)
+        bms = {}
+        for row in reader:
+            bms[row[1]] = {
+                "id": row[0],
+                "name": row[1],
+                "url": row[2],
+                "tag": row[3],
+                "last modified": row[4]
+            }
+
+        with open("bookmarks.json", "w") as f:
+            json.dump(bms, f, indent=4)
+            print("\nImported bookmarks from [yellow]bookmarks.csv[/yellow]\n")
 
 
 if __name__ == "__main__":
