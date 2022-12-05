@@ -16,7 +16,7 @@ app.add_typer(bm, name="bm")
 def init():
     os.system("cls" if os.name == "nt" else "clear")
 
-    print("\nWelcome to [bold blue]Nota[/bold blue], the CLI bm tool! Type 'exit' to quit.\n")
+    print("\nWelcome to [bold blue]Bookmarkr[/bold blue], the CLI bookmark tool! Type 'exit' to quit.\n")
 
 
 @app.command()
@@ -44,7 +44,7 @@ def add(
         banned = f.read().splitlines()
         for word in banned:
             if word in name:
-                print(f"\n[red]Error [/red]: query contains banned language. Please remove {word} from your query.\n")
+                print(f"\n[red]Error [/red]: name contains banned language. Please remove {word} from the name.\n")
                 return
 
     with open("bookmarks.json", "r") as f:
