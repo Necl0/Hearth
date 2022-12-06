@@ -1,4 +1,4 @@
-import typer, json, datetime, webbrowser, random, string, os, csv, toml
+import typer, json, datetime, webbrowser, random, string, os, csv
 from rich import print
 from rich.table import Table
 
