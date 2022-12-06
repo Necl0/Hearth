@@ -1,4 +1,8 @@
-📚 Bookmarkr - a CLI Bookmark manager tool!
+🏠 cliHQ - a CLI tool that resembles a Notion home page
 
-Written in Python's Typer framework + Rich for pretty printing and terminal styling
+- Bookmark manager
+- Journal
+- weather
+- random quote
 
+built w/ Typer, requests
