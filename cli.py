@@ -7,7 +7,7 @@ bm = typer.Typer()
 
 @bm.command()
 def init():
-    """Initialize  CLI"""
+    """Initialize CLI"""
     os.system("cls" if os.name == "nt" else "clear")
 
     print("\nWelcome to [bold blue]Bookmarkr[/bold blue], the CLI bookmark tool! Type 'exit' to quit.\n")
@@ -86,7 +86,6 @@ def list():
                 bms[bm]["tag"],
                 bms[bm]["last modified"]
             )
-
 
     print(table)
 
