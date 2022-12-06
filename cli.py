@@ -6,9 +6,11 @@ app = typer.Typer()
 
 bm = typer.Typer(help="Bookmark manager")
 jl = typer.Typer(help="Journal manager")
+todo = typer.Typer(help="Todo manager")
 
 app.add_typer(bm, name="bm")
 app.add_typer(jl, name="jl")
+app.add_typer(todo, name="todo")
 
 ### Root commands ###
 @app.command("home")
@@ -367,7 +369,82 @@ def table_view():
 
         print(table)
 
+### TODO Manager ###
+@todo.command("add")
+def add():
+    """Add a todo"""
+    os.system("cls" if os.name == "nt" else "clear")
 
+    title = typer.prompt("Enter the title of the todo")
+    description = typer.prompt("Enter the description of the todo")
+
+    # add the todo to the list
+    with open("todo.json", "r") as f:
+        todo = json.load(f)
+        todo[title] = {
+            "title": title,
+            "description": description,
+            "completed": "false"
+        }
+
+        with open("todo.json", "w") as c:
+            json.dump(todo, c, indent=4)
+
+    print(f"Added todo [blue bold]{title}[/blue bold] to todo list")
+
+@todo.command("complete")
+def complete(title: str = typer.Argument(..., help="Title of the todo to complete")):
+    """Complete a todo"""
+    os.system("cls" if os.name == "nt" else "clear")
+
+    with open("todo.json", "r") as f:
+        todo = json.load(f)
+
+        for item in todo:
+            if title == todo[item]["title"]:
+                todo[item]["completed"] = "true"
+                with open("todo.json", "w") as c:
+                    json.dump(todo, c, indent=4)
+                    print(f"Completed todo [blue]{title}[/blue].\n")
+                    return
+
+        print(f"\n[red]Error[/red]: todo {title} does not exist.\n")
+
+@todo.command("delete")
+def delete(title: str = typer.Argument(..., help="Title of the todo to delete")):
+    """Delete a todo"""
+    os.system("cls" if os.name == "nt" else "clear")
+
+    with open("todo.json", "r") as f:
+        todo = json.load(f)
+
+        for item in todo:
+            if title == todo[item]["title"]:
+                del todo[item]
+                with open("todo.json", "w") as c:
+                    json.dump(todo, c, indent=4)
+                    print(f"Deleted todo [blue]{title}[/blue].\n")
+                    return
+
+        print(f"\n[red]Error[/red]: todo {title} does not exist.\n")
+
+@todo.command("list")
+def table_view():
+    """View todo list in a table"""
+    os.system("cls" if os.name == "nt" else "clear")
+
+    with open("todo.json", "r") as f:
+        todo = json.load(f)
+        table = Table()
+
+        table.add_column("Title", justify="center", style="cyan")
+        table.add_column("Description", justify="center", style="cyan")
+        table.add_column("Completed", justify="center", style="cyan")
+
+        for item in todo:
+            table.add_row(todo[item]["title"], todo[item]["description"], todo[item]["completed"])
+
+        print(table)
 
 
 if __name__ == "__main__":
