@@ -2,6 +2,7 @@
 
 - Bookmark manager
 - Journal
+- Todo list
 - weather
 - random quote
 
