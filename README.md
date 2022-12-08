@@ -7,4 +7,4 @@
 - weather
 - random quote
 
-built w/ Typer, requests
+built w/ Typer, Rich
