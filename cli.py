@@ -1,17 +1,17 @@
-import typer
-import json
+import csv
 import datetime
-import webbrowser
+import json
+import os
+import platform
 import random
 import string
-import os
-import csv
-import requests
-import psutil
-import platform
-import chrome_bookmarks
-import shutil
+import webbrowser
 from datetime import datetime
+
+import chrome_bookmarks
+import psutil
+import requests
+import typer
 from rich import print
 from rich.table import Table
 
@@ -693,10 +693,9 @@ def print_tree():
     """Print the directory tree"""
     os.system("cls" if os.name == "nt" else "clear")
 
-    # print all directories and if they contain note files, print them in tree like fashion, indent=4
     for directory in os.listdir():
         if os.path.isdir(directory):
-            # if file isnt venv, pycache, or idea
+            # if file isn't venv, pycache, or idea
 
             if directory not in ("venv", ".idea", "__pycache__"):
                 print(f"[blue bold]{directory}[/blue bold]")
