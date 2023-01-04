@@ -1,4 +1,4 @@
-🔥 Hearth - a CLI tool that resembles a Notion home page
+🔥 Hearth - a multipurpose CLI tool
 
 - Bookmark manager
 - Journal
